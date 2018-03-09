@@ -14,6 +14,7 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<maven.compiler.source>1.8</maven.compiler.source>
 		<maven.compiler.target>1.8</maven.compiler.target>
+		<jar.finalName>${project.name}-${version}</jar.finalName>
 	</properties>
 
 	<dependencies>
@@ -44,6 +45,14 @@
 			<version>1.2</version>
 		</dependency>
 
+<!-- https://mvnrepository.com/artifact/commons-cli/commons-cli -->
+<dependency>
+    <groupId>commons-cli</groupId>
+    <artifactId>commons-cli</artifactId>
+    <version>1.4</version>
+</dependency>
+
+
 	</dependencies>
 
 	<build>
@@ -57,7 +66,7 @@
 					<target>1.8</target>
 				</configuration>
 			</plugin>
-			
+
 			<!-- java:exec goal -->
 			<plugin>
 				<groupId>org.codehaus.mojo</groupId>
@@ -76,36 +85,35 @@
 				</configuration>
 			</plugin>
 
-			<!-- Build an executable JAR -->
-			<plugin>				
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-jar-plugin</artifactId>
-				<version>2.4</version>
-				<configuration>
-					<archive>
-						<manifest>
-							<addClasspath>true</addClasspath>
-							<mainClass>io.adobe.weshopkins.CLI</mainClass>
-						</manifest>
-					</archive>
-				</configuration>
-			</plugin>
-
-			<!--  package with dependencies -->
+			<!-- package with dependencies -->
 			<plugin>
 				<artifactId>maven-assembly-plugin</artifactId>
 				<executions>
+
 					<execution>
-						<phase>package</phase>
+						<id>make-assembly</id> <!-- this is used for inheritance merges -->
+
+						<phase>package</phase> <!-- bind to the packaging phase -->
 						<goals>
 							<goal>single</goal>
 						</goals>
 					</execution>
 				</executions>
 				<configuration>
+				    <finalName>${project.name}-executable</finalName>
+				
 					<descriptorRefs>
 						<descriptorRef>jar-with-dependencies</descriptorRef>
 					</descriptorRefs>
+					<archive>
+						<manifest>
+							<addClasspath>true</addClasspath>
+							<mainClass>io.adobe.weshopkins.CLI</mainClass>
+						</manifest>
+						<manifestEntries>
+							<Class-Path>.</Class-Path>
+						</manifestEntries>
+					</archive>
 				</configuration>
 			</plugin>
 
