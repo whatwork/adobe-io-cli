@@ -1,5 +1,6 @@
 package io.adobe.weshopkins;
 
+import java.io.Console;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.util.Properties;
@@ -19,16 +20,14 @@ import org.apache.commons.cli.ParseException;
 import org.apache.commons.logging.Log; 
 import org.apache.commons.logging.LogFactory; 
 
-/**
- * Hello world!
- *
- */
+
 public class CLI {
 	
 	private final static String PROPERTIES_FILE_NAME = "adobeio.properties";
 	
 	private final static String ARG_TARGET_ACTIVITIES = "targetActivities";
 	private final static String ARG_HELP = "help";
+	private final static String ARG_BEARER_TOKEN = "bearerToken";
 
 	private static Log log = LogFactory.getLog(JWT.class);
 
@@ -39,27 +38,34 @@ public class CLI {
 	    
 	    Options options = new Options();
 	    options.addOption(new Option( ARG_HELP, "print this message" ));
-	    options.addOption(new Option( ARG_TARGET_ACTIVITIES, "Get all target activities" ));
 	    
+	    options.addOption(Option.builder("ta")
+                .longOpt(ARG_TARGET_ACTIVITIES)
+                .desc("Get all target activities" )
+                .build()
+                );	    
+	    
+	    options.addOption(Option.builder("bt")
+                .hasArg()
+                .longOpt(ARG_BEARER_TOKEN)
+                .argName("token")
+                .desc("Specify the bearer token instead of fetching from IMS host" )
+                .build()
+                );
+                
 	    try {
 	        line = parser.parse( options, args );
 	        
 	        // there is no arg'less invocation of this tool
-	        if (line.getArgs().length==0)
-	        	throw new ParseException("");
+	        if (args.length<1)
+	        	throw new ParseException("No arguments specified");
 	    }
 	    catch( ParseException exp ) {
-	    	
 	    	HelpFormatter formatter = new HelpFormatter();
 	    	formatter.printHelp( "CLI", options );
-	    	
-	    	if (exp.getMessage()!=null && exp.getMessage().length()>0){
-		        // oops, something went wrong
-		        System.err.println( "Parsing failed.  Reason: " + exp.getMessage() );
-	    	}
+	        System.err.println( "\nError: " + exp.getMessage() );
 	        return;
 	    }
-	    
 		
 		Properties prop = new Properties();
 		
@@ -87,10 +93,17 @@ public class CLI {
 		log.debug("JWT:" + jwtToken);
 		
 		// Convert the JWT token to a Bearer token
-		String bearerToken = JWT.getBearerTokenFromJWT(imsHost, apiKey, clientSecret, jwtToken);
-		log.debug("Bearer: " + bearerToken);
+		String bearerToken = "";
+		if (line.hasOption(ARG_BEARER_TOKEN))
+		{
+			bearerToken = line.getOptionValue(ARG_BEARER_TOKEN);
+			log.debug("Bearer specified: " + bearerToken);
+		} else {
+			bearerToken = JWT.getBearerTokenFromJWT(imsHost, apiKey, clientSecret, jwtToken);
+			log.debug("Bearer fetched: " + bearerToken);
+		}
 		
-		if (line.hasOption("targetActivities")) {
+		if (line.hasOption(ARG_TARGET_ACTIVITIES)) {
 			JSONObject activities = TargetApi.getActivities("https://" + apiHost + "/" + tenant + "/target/activities/", apiKey, bearerToken);
 			System.out.println(activities.toString(1));
 		}
