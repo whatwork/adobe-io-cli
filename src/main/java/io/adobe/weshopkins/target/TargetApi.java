@@ -29,15 +29,12 @@ public class TargetApi {
 		conn.setConnectTimeout(30000);
 		conn.setReadTimeout(30000);
 		
-		// enumerate the request headers for sanity.
 		log.debug("getActivities header");
 		for (String key : conn.getRequestProperties().keySet())
 		{
-			// hey -- where's the auth header?! its' gone?!
 			log.debug(key + ": " + conn.getRequestProperty(key));
 		}
 
-		// conn.connect();
 		int responseCode = conn.getResponseCode();
 		
 		log.debug("getActivities Sending 'GET' request to URL : " + endpoint);
@@ -49,7 +46,6 @@ public class TargetApi {
 		while ((inputLine = in.readLine()) != null) {
 			response.append(inputLine);
 		}
-
 		in.close();
 
 		log.debug("getActivities Response: " + response.toString());

@@ -1,6 +1,5 @@
 package io.adobe.weshopkins;
 
-import java.io.Console;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.util.Properties;
