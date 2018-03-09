@@ -7,11 +7,17 @@
 * http://commons.apache.org/proper/commons-cli/
 
 # Generate self signed cert
+```
 openssl genrsa -aes256 -out target-test-private.key -passout pass:password 4096
+
 openssl rsa -in target-test-private.key -passin pass:password -out target-test-private.key
+
 openssl req -sha256 -new -key target-test-private.key -out target-test-.csr -subj '/CN=localhost'
+
 openssl x509 -req -days 365 -in target-test-.csr -signkey target-test-private.key -out target-test-.crt
+
 openssl pkcs8 -topk8 -inform PEM -outform DER -in target-test-private.key -out target-test-private.der -nocrypt
+```
 
 # add charles to java keystore
 keytool -importcert -alias startssl -keystore $JAVA_HOME/jre/lib/security/cacerts -storepass changeit -file charles-ca.der
