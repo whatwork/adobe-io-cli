@@ -26,6 +26,22 @@ public class JWT {
 
 	private static Log log = LogFactory.getLog(JWT.class);
 
+	/**
+	 * 
+	 * getJWT
+	 * 
+	 * Creates a JWT request and signs it with the secret key
+	 * 
+	 * @param imsHost
+	 * @param orgId
+	 * @param technicalAccountId
+	 * @param apiKey
+	 * @param pathToSecretKey
+	 * @return
+	 * @throws NoSuchAlgorithmException
+	 * @throws InvalidKeySpecException
+	 * @throws IOException
+	 */
 	public static String getJWT(String imsHost, String orgId, String technicalAccountId, String apiKey,
 			String pathToSecretKey) throws NoSuchAlgorithmException, InvalidKeySpecException, IOException {
 
@@ -63,6 +79,21 @@ public class JWT {
 		return jwtToken;
 	}
 
+	
+	/**
+	 * 
+	 * getBearerTokenFromJWT
+	 * 
+	 * Calls Adobe IO with the JWT token, gets back a bearer token
+	 * for use in later API calls.
+	 * 
+	 * @param imsHost
+	 * @param clientId
+	 * @param clientSecret
+	 * @param jwtToken
+	 * @return
+	 * @throws Exception
+	 */
 	public static String getBearerTokenFromJWT(String imsHost, String clientId, String clientSecret, String jwtToken)
 			throws Exception {
 

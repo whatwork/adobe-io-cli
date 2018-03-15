@@ -7,7 +7,7 @@ import java.util.Properties;
 import org.json.JSONObject;
 
 import io.adobe.weshopkins.JWT;
-import io.adobe.weshopkins.target.TargetApi;
+import io.adobe.weshopkins.target.TargetAPI;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
@@ -19,35 +19,95 @@ import org.apache.commons.cli.ParseException;
 import org.apache.commons.logging.Log; 
 import org.apache.commons.logging.LogFactory; 
 
+/**
+ * CLI
+ * 
+ * Performs setup, parsing, and execution of the command line arguments
+ * 
+ * @author wehopkin
+ *
+ */
 
 public class CLI {
 	
 	private final static String PROPERTIES_FILE_NAME = "adobeio.properties";
 	
-	private final static String ARG_TARGET_ACTIVITIES = "targetActivities";
+	private final static String ARG_TARGET_ACTIVITIES = "tacts";
+	private final static String ARG_TARGET_ACTIVITIES_LONG = "targetActivities";
+	private final static String ARG_TARGET_ACTIVITY_XT = "txt";
+	private final static String ARG_TARGET_ACTIVITY_XT_LONG = "getTargetXT";
+	private final static String ARG_TARGET_ACTIVITY_AB = "tab";
+	private final static String ARG_TARGET_ACTIVITY_AB_LONG = "getTargetAB";
+
+	private final static String ARG_TARGET_DELETE_XT = "tdxt";
+	private final static String ARG_TARGET_DELETE_XT_LONG = "deleteTargetXT";
+	private final static String ARG_TARGET_DELETE_AB = "tdab";
+	private final static String ARG_TARGET_DELETE_AB_LONG = "targetDeleteAB";
+	
 	private final static String ARG_HELP = "help";
-	private final static String ARG_BEARER_TOKEN = "bearerToken";
+	private final static String ARG_BEARER_TOKEN = "bt";
+	private final static String ARG_BEARER_TOKEN_LONG = "bearerToken";
 
 	private static Log log = LogFactory.getLog(JWT.class);
 
+	
+	
 	public static void main(String[] args) throws Exception {
 		
-	    CommandLineParser parser = new DefaultParser();
+	    /* create command line parser */
+		CommandLineParser parser = new DefaultParser();
 	    CommandLine line = null;
 	    
+	    /* add all the acceptable command line arguments */
 	    Options options = new Options();
 	    options.addOption(new Option( ARG_HELP, "print this message" ));
 	    
-	    options.addOption(Option.builder("ta")
-                .longOpt(ARG_TARGET_ACTIVITIES)
+	    options.addOption(Option.builder(ARG_TARGET_ACTIVITIES)
+                .longOpt(ARG_TARGET_ACTIVITIES_LONG)
                 .desc("Get all target activities" )
                 .build()
                 );	    
+
+	    options.addOption(Option.builder(ARG_TARGET_DELETE_XT)
+	    		.hasArg()
+                .longOpt(ARG_TARGET_DELETE_XT_LONG)
+                .desc("Delete a specific  XT target activity" )
+                .argName("id")
+                .type(Long.class)
+                .build()
+                );
+
+	    options.addOption(Option.builder(ARG_TARGET_DELETE_AB)
+	    		.hasArg()
+                .longOpt(ARG_TARGET_DELETE_AB_LONG)
+                .desc("Delete a specific A/B target activity" )
+                .argName("id")
+                .type(Long.class)
+                .build()
+                );
 	    
-	    options.addOption(Option.builder("bt")
+	    options.addOption(Option.builder(ARG_TARGET_ACTIVITY_AB)
+	    		.hasArg()
+                .longOpt(ARG_TARGET_ACTIVITY_AB_LONG)
+                .desc("Get a specific A/B Targeting activity" )
+                .argName("id")
+                .type(Long.class)
+                .build()
+                );
+	    options.addOption(Option.builder(ARG_TARGET_ACTIVITY_XT)
+	    		.hasArg()
+                .longOpt(ARG_TARGET_ACTIVITY_XT_LONG)
+                .desc("Get a specific XT Targeting activity" )
+                .argName("id")
+                .type(Long.class)
+                .build()
+                );
+
+	    
+	    options.addOption(Option.builder(ARG_BEARER_TOKEN)
                 .hasArg()
-                .longOpt(ARG_BEARER_TOKEN)
-                .argName("token")
+                .longOpt(ARG_BEARER_TOKEN_LONG)
+                .argName("token")                
                 .desc("Specify the bearer token instead of fetching from IMS host" )
                 .build()
                 );
@@ -60,12 +120,16 @@ public class CLI {
 	        	throw new ParseException("No arguments specified");
 	    }
 	    catch( ParseException exp ) {
+	    	
+	    	/* error parsing */
 	    	HelpFormatter formatter = new HelpFormatter();
 	    	formatter.printHelp( "CLI", options );
 	        System.err.println( "\nError: " + exp.getMessage() );
 	        return;
 	    }
 		
+	    // TODO : add an arg to select a props file
+	    // TODO : default to a homedir .adobeio.properties file
 		Properties prop = new Properties();
 		
 		InputStream inputStream = new CLI().getClass().getClassLoader().getResourceAsStream(PROPERTIES_FILE_NAME);
@@ -102,8 +166,36 @@ public class CLI {
 			log.debug("Bearer fetched: " + bearerToken);
 		}
 		
+		// go through the arguments and execute....
+		
 		if (line.hasOption(ARG_TARGET_ACTIVITIES)) {
-			JSONObject activities = TargetApi.getActivities("https://" + apiHost + "/" + tenant + "/target/activities/", apiKey, bearerToken);
+			TargetAPI target = new TargetAPI(apiHost, tenant, apiKey, bearerToken);
+			JSONObject activities = target.getActivities();
+			System.out.println(activities.toString(1));
+		} 
+		if (line.hasOption(ARG_TARGET_ACTIVITY_XT)) {
+			TargetAPI target = new TargetAPI(apiHost, tenant, apiKey, bearerToken);
+			Long activityId = Long.decode(line.getOptionValue(ARG_TARGET_ACTIVITY_XT));
+			JSONObject activities = target.getActivity(activityId);
+			System.out.println(activities.toString(1));
+		}
+		if (line.hasOption(ARG_TARGET_ACTIVITY_AB)) {
+			TargetAPI target = new TargetAPI(apiHost, tenant, apiKey, bearerToken);
+			Long activityId = Long.decode(line.getOptionValue(ARG_TARGET_ACTIVITY_AB));
+			JSONObject activities = target.getActivity(activityId);
+			System.out.println(activities.toString(1));
+		}
+
+		if (line.hasOption(ARG_TARGET_DELETE_XT)) {
+			TargetAPI target = new TargetAPI(apiHost, tenant, apiKey, bearerToken);
+			Long activityId = Long.decode(line.getOptionValue(ARG_TARGET_DELETE_XT));
+			JSONObject activities = target.deleteXTActivity(activityId);
+			System.out.println(activities.toString(1));
+		}
+		if (line.hasOption(ARG_TARGET_DELETE_AB)) {
+			TargetAPI target = new TargetAPI(apiHost, tenant, apiKey, bearerToken);
+			Long activityId = Long.decode(line.getOptionValue(ARG_TARGET_DELETE_AB));
+			JSONObject activities = target.deleteABActivity(activityId);
 			System.out.println(activities.toString(1));
 		}
 		
