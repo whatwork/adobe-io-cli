@@ -44,6 +44,26 @@ public class CLI {
 	private final static String ARG_TARGET_DELETE_AB = "tdab";
 	private final static String ARG_TARGET_DELETE_AB_LONG = "targetDeleteAB";
 	
+	private final static String ARG_ORG_ID = "orgid";
+	private final static String ARG_ORG_ID_LONG = "organizationId";
+	
+	private final static String ARG_TECH_ID = "techid";
+	private final static String ARG_TECH_ID_LONG = "technicalAccountId";
+	
+	private final static String ARG_API_KEY = "apiKey";
+	private final static String ARG_TENANT = "tenant";
+
+	
+	private final static String ARG_PRIV_KEY = "K";
+	private final static String ARG_PRIV_KEY_LONG = "privateKeyFile";
+	
+	private final static String ARG_IMS_HOST = "ims";
+	private final static String ARG_IMS_HOST_LONG = "imsHost";
+
+	private final static String ARG_API_HOST = "apiHost";
+	private final static String ARG_CLIENT_SECRET = "clientSecret";
+	
+	
 	private final static String ARG_HELP = "help";
 	private final static String ARG_BEARER_TOKEN = "bt";
 	private final static String ARG_BEARER_TOKEN_LONG = "bearerToken";
@@ -61,6 +81,66 @@ public class CLI {
 	    /* add all the acceptable command line arguments */
 	    Options options = new Options();
 	    options.addOption(new Option( ARG_HELP, "print this message" ));
+
+	    options.addOption(Option.builder(ARG_ORG_ID)
+	    		.hasArg()
+                .longOpt(ARG_ORG_ID_LONG)
+                .desc("Organization ID" )
+                .argName("id")
+                .build()
+                );
+	    
+	    options.addOption(Option.builder(ARG_TECH_ID)
+	    		.hasArg()
+                .longOpt(ARG_TECH_ID_LONG)
+                .desc("Technical account ID" )
+                .argName("id")
+                .build()
+                );
+	    
+	    options.addOption(Option.builder(ARG_API_KEY)
+	    		.hasArg()
+                .desc("API Key" )
+                .argName("key")
+                .build()
+                );
+	    
+	    options.addOption(Option.builder(ARG_TENANT)
+	    		.hasArg()
+                .desc("Tenant ID" )
+                .argName("id")
+                .build()
+                );
+	    
+	    options.addOption(Option.builder(ARG_PRIV_KEY)
+	    		.hasArg()
+                .longOpt(ARG_PRIV_KEY_LONG)
+                .desc("Filename of private key in DER format" )
+                .argName("filename")
+                .build()
+                );
+	    
+	    options.addOption(Option.builder(ARG_IMS_HOST)
+	    		.hasArg()
+                .longOpt(ARG_IMS_HOST_LONG)
+                .desc("Hostname of IMS Host (FQDN, no protocol)" )
+                .argName("hostname")
+                .build()
+                );
+	    
+	    options.addOption(Option.builder(ARG_API_HOST)
+	    		.hasArg()
+                .desc("API Hostname (FQDN, no protocol)" )
+                .argName("hostname")
+                .build()
+                );
+
+	    options.addOption(Option.builder(ARG_CLIENT_SECRET)
+	    		.hasArg()
+                .desc("Client Secret" )
+                .argName("secret")
+                .build()
+                );
 	    
 	    options.addOption(Option.builder(ARG_TARGET_ACTIVITIES)
                 .longOpt(ARG_TARGET_ACTIVITIES_LONG)
@@ -130,7 +210,8 @@ public class CLI {
 		
 	    // TODO : add an arg to select a props file
 	    // TODO : default to a homedir .adobeio.properties file
-		Properties prop = new Properties();
+
+	    Properties prop = new Properties();
 		
 		InputStream inputStream = new CLI().getClass().getClassLoader().getResourceAsStream(PROPERTIES_FILE_NAME);
 
@@ -142,14 +223,14 @@ public class CLI {
 		}
 		
 		// API key information from properties file
-		String orgId = prop.getProperty("enterprise.organizationId");
-		String technicalAccountId = prop.getProperty("enterprise.technicalAccountId");
-		String apiKey = prop.getProperty("enterprise.apiKey"); 
-		String tenant = prop.getProperty("enterprise.tenant"); 
-		String pathToSecretKey = prop.getProperty("enterprise.privateKeyFilename"); 
-		String imsHost = prop.getProperty("server.imsHost"); 
-		String clientSecret = prop.getProperty("enterprise.clientSecret");
-		String apiHost = prop.getProperty("server.apiHost");
+		String orgId = line.getOptionValue(ARG_ORG_ID, prop.getProperty("enterprise.organizationId"));
+		String technicalAccountId = line.getOptionValue(ARG_TECH_ID, prop.getProperty("enterprise.technicalAccountId"));
+		String apiKey = line.getOptionValue(ARG_API_KEY,prop.getProperty("enterprise.apiKey")); 
+		String tenant = line.getOptionValue(ARG_TENANT,prop.getProperty("enterprise.tenant")); 
+		String pathToSecretKey = line.getOptionValue(ARG_PRIV_KEY,prop.getProperty("enterprise.privateKeyFilename")); 
+		String imsHost = line.getOptionValue(ARG_IMS_HOST,prop.getProperty("server.imsHost")); 
+		String clientSecret = line.getOptionValue(ARG_CLIENT_SECRET,prop.getProperty("enterprise.clientSecret"));
+		String apiHost = line.getOptionValue(ARG_API_HOST,prop.getProperty("server.apiHost"));
 
 		// Get a JWT token 
 		String jwtToken = JWT.getJWT(imsHost, orgId, technicalAccountId, apiKey, pathToSecretKey);
@@ -192,6 +273,7 @@ public class CLI {
 			JSONObject activities = target.deleteXTActivity(activityId);
 			System.out.println(activities.toString(1));
 		}
+		
 		if (line.hasOption(ARG_TARGET_DELETE_AB)) {
 			TargetAPI target = new TargetAPI(apiHost, tenant, apiKey, bearerToken);
 			Long activityId = Long.decode(line.getOptionValue(ARG_TARGET_DELETE_AB));

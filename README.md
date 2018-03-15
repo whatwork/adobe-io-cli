@@ -18,18 +18,22 @@ A basic command line client to call things on Adobe.io.  Use this as a basis to 
 * populate adobeio.properties with your account credentials 
 * compile and go
 
-## Building
+## Quick and easy start
 
+First. clone repo to your machine.
+```
+git clone https://git.corp.adobe.com/wehopkin/adobeio-wes-cli.git
+```
+
+Second.  Build the executable JAR package.
 ```
 mvn clean package
 ```
-This will give you a fully contained executable JAR file in the ./target output directory
 
-
-## Todo
-* lots, lol.
-* feed API credentials on command line
-
+Third. Run.  See the help. It will tell you what args you need.
+```
+java -jar ./target/CLI-executable-jar-with-dependencies.jar -help
+```
 
 # How to Generate self signed certificate
 _note, you can (prolly should) change the password.  it's hardcoded to password in these examples._
