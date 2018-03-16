@@ -85,7 +85,118 @@ public class CLI {
 	    /* create command line parser */
 		CommandLineParser parser = new DefaultParser();
 	    CommandLine line = null;
+	    Options options = buildCommandLineOptions();
 	    
+	    try {
+	        line = parser.parse( options, args );
+	        
+	        // there is no arg'less invocation of this tool
+	        if (args.length<1)
+	        	throw new ParseException("No arguments specified");
+	    }
+	    catch( ParseException exp ) {
+	    	
+	    	/* error parsing */
+	    	HelpFormatter formatter = new HelpFormatter();
+	    	formatter.printHelp( "CLI", options );
+	        System.err.println( "\nError: " + exp.getMessage() );
+	        return;
+	    }
+		
+	    // TODO : add an arg to select a props file
+	    // TODO : default to a homedir .adobeio.properties file
+
+	    Properties prop = new Properties();
+		
+		InputStream inputStream = new CLI().getClass().getClassLoader().getResourceAsStream(PROPERTIES_FILE_NAME);
+
+		if (inputStream != null) {
+			prop.load(inputStream);
+			log.debug("Loaded properties file " + PROPERTIES_FILE_NAME);
+		} else {
+			throw new FileNotFoundException("Property file '" + PROPERTIES_FILE_NAME + "' not found in the classpath");
+		}
+		
+		// API key information from properties file
+		String orgId = line.getOptionValue(ARG_ORG_ID, prop.getProperty("enterprise.organizationId"));
+		String technicalAccountId = line.getOptionValue(ARG_TECH_ID, prop.getProperty("enterprise.technicalAccountId"));
+		String apiKey = line.getOptionValue(ARG_API_KEY,prop.getProperty("enterprise.apiKey")); 
+		String tenant = line.getOptionValue(ARG_TENANT,prop.getProperty("enterprise.tenant")); 
+		String pathToSecretKey = line.getOptionValue(ARG_PRIV_KEY,prop.getProperty("enterprise.privateKeyFilename")); 
+		String imsHost = line.getOptionValue(ARG_IMS_HOST,prop.getProperty("server.imsHost")); 
+		String clientSecret = line.getOptionValue(ARG_CLIENT_SECRET,prop.getProperty("enterprise.clientSecret"));
+		String apiHost = line.getOptionValue(ARG_API_HOST,prop.getProperty("server.apiHost"));
+
+		// Get a JWT token 
+		String jwtToken = JWT.getJWT(imsHost, orgId, technicalAccountId, apiKey, pathToSecretKey);
+		log.debug("JWT:" + jwtToken);
+		
+		// Convert the JWT token to a Bearer token
+		String bearerToken = "";
+		if (line.hasOption(ARG_BEARER_TOKEN))
+		{
+			bearerToken = line.getOptionValue(ARG_BEARER_TOKEN);
+			log.debug("Bearer specified: " + bearerToken);
+		} else {
+			bearerToken = JWT.getBearerTokenFromJWT(imsHost, apiKey, clientSecret, jwtToken);
+			log.debug("Bearer fetched: " + bearerToken);
+		}
+		
+		// go through the arguments and execute....
+
+		
+		if (line.hasOption(ARG_GET_BEARER_TOKEN)) {
+			System.out.println(bearerToken);
+			return;
+		} 
+		
+		if (line.hasOption(ARG_TARGET_ACTIVITIES)) {
+			TargetAPI target = new TargetAPI(apiHost, tenant, apiKey, bearerToken);
+			JSONObject activities = target.getActivities();
+			System.out.println(activities.toString(1));
+		} 
+		if (line.hasOption(ARG_TARGET_ACTIVITY_XT)) {
+			TargetAPI target = new TargetAPI(apiHost, tenant, apiKey, bearerToken);
+			Long activityId = Long.decode(line.getOptionValue(ARG_TARGET_ACTIVITY_XT));
+			JSONObject activities = target.getActivityXT(activityId);
+			System.out.println(activities.toString(1));
+		}
+		if (line.hasOption(ARG_TARGET_ACTIVITY_AB)) {
+			TargetAPI target = new TargetAPI(apiHost, tenant, apiKey, bearerToken);
+			Long activityId = Long.decode(line.getOptionValue(ARG_TARGET_ACTIVITY_AB));
+			JSONObject activities = target.getActivityAB(activityId);
+			System.out.println(activities.toString(1));
+		}
+
+		if (line.hasOption(ARG_TARGET_DELETE_XT)) {
+			TargetAPI target = new TargetAPI(apiHost, tenant, apiKey, bearerToken);
+			Long activityId = Long.decode(line.getOptionValue(ARG_TARGET_DELETE_XT));
+			JSONObject activities = target.deleteXTActivity(activityId);
+			System.out.println(activities.toString(1));
+		}
+		
+		if (line.hasOption(ARG_TARGET_DELETE_AB)) {
+			TargetAPI target = new TargetAPI(apiHost, tenant, apiKey, bearerToken);
+			Long activityId = Long.decode(line.getOptionValue(ARG_TARGET_DELETE_AB));
+			JSONObject activities = target.deleteABActivity(activityId);
+			System.out.println(activities.toString(1));
+		}
+
+		if (line.hasOption(ARG_TARGET_AUDIENCES)) {
+			TargetAPI target = new TargetAPI(apiHost, tenant, apiKey, bearerToken);
+			JSONObject audiences = target.getAudiences();
+			System.out.println(audiences.toString(1));
+		}		
+	}
+
+	/**
+	 * buildCommandLineOptions
+	 * 
+	 * return an Options argument to be used by the command line parser
+	 * @return
+	 */
+	private static Options buildCommandLineOptions()
+	{
 	    /* add all the acceptable command line arguments */
 	    Options options = new Options();
 	    options.addOption(new Option( ARG_HELP, "print this message" ));
@@ -214,108 +325,7 @@ public class CLI {
                 .build()
                 );
 	    
-	    try {
-	        line = parser.parse( options, args );
-	        
-	        // there is no arg'less invocation of this tool
-	        if (args.length<1)
-	        	throw new ParseException("No arguments specified");
-	    }
-	    catch( ParseException exp ) {
-	    	
-	    	/* error parsing */
-	    	HelpFormatter formatter = new HelpFormatter();
-	    	formatter.printHelp( "CLI", options );
-	        System.err.println( "\nError: " + exp.getMessage() );
-	        return;
-	    }
-		
-	    // TODO : add an arg to select a props file
-	    // TODO : default to a homedir .adobeio.properties file
-
-	    Properties prop = new Properties();
-		
-		InputStream inputStream = new CLI().getClass().getClassLoader().getResourceAsStream(PROPERTIES_FILE_NAME);
-
-		if (inputStream != null) {
-			prop.load(inputStream);
-			log.debug("Loaded properties file " + PROPERTIES_FILE_NAME);
-		} else {
-			throw new FileNotFoundException("Property file '" + PROPERTIES_FILE_NAME + "' not found in the classpath");
-		}
-		
-		// API key information from properties file
-		String orgId = line.getOptionValue(ARG_ORG_ID, prop.getProperty("enterprise.organizationId"));
-		String technicalAccountId = line.getOptionValue(ARG_TECH_ID, prop.getProperty("enterprise.technicalAccountId"));
-		String apiKey = line.getOptionValue(ARG_API_KEY,prop.getProperty("enterprise.apiKey")); 
-		String tenant = line.getOptionValue(ARG_TENANT,prop.getProperty("enterprise.tenant")); 
-		String pathToSecretKey = line.getOptionValue(ARG_PRIV_KEY,prop.getProperty("enterprise.privateKeyFilename")); 
-		String imsHost = line.getOptionValue(ARG_IMS_HOST,prop.getProperty("server.imsHost")); 
-		String clientSecret = line.getOptionValue(ARG_CLIENT_SECRET,prop.getProperty("enterprise.clientSecret"));
-		String apiHost = line.getOptionValue(ARG_API_HOST,prop.getProperty("server.apiHost"));
-
-		// Get a JWT token 
-		String jwtToken = JWT.getJWT(imsHost, orgId, technicalAccountId, apiKey, pathToSecretKey);
-		log.debug("JWT:" + jwtToken);
-		
-		// Convert the JWT token to a Bearer token
-		String bearerToken = "";
-		if (line.hasOption(ARG_BEARER_TOKEN))
-		{
-			bearerToken = line.getOptionValue(ARG_BEARER_TOKEN);
-			log.debug("Bearer specified: " + bearerToken);
-		} else {
-			bearerToken = JWT.getBearerTokenFromJWT(imsHost, apiKey, clientSecret, jwtToken);
-			log.debug("Bearer fetched: " + bearerToken);
-		}
-		
-		// go through the arguments and execute....
-
-		
-		if (line.hasOption(ARG_GET_BEARER_TOKEN)) {
-			System.out.println(bearerToken);
-			return;
-		} 
-		
-		if (line.hasOption(ARG_TARGET_ACTIVITIES)) {
-			TargetAPI target = new TargetAPI(apiHost, tenant, apiKey, bearerToken);
-			JSONObject activities = target.getActivities();
-			System.out.println(activities.toString(1));
-		} 
-		if (line.hasOption(ARG_TARGET_ACTIVITY_XT)) {
-			TargetAPI target = new TargetAPI(apiHost, tenant, apiKey, bearerToken);
-			Long activityId = Long.decode(line.getOptionValue(ARG_TARGET_ACTIVITY_XT));
-			JSONObject activities = target.getActivityXT(activityId);
-			System.out.println(activities.toString(1));
-		}
-		if (line.hasOption(ARG_TARGET_ACTIVITY_AB)) {
-			TargetAPI target = new TargetAPI(apiHost, tenant, apiKey, bearerToken);
-			Long activityId = Long.decode(line.getOptionValue(ARG_TARGET_ACTIVITY_AB));
-			JSONObject activities = target.getActivityAB(activityId);
-			System.out.println(activities.toString(1));
-		}
-
-		if (line.hasOption(ARG_TARGET_DELETE_XT)) {
-			TargetAPI target = new TargetAPI(apiHost, tenant, apiKey, bearerToken);
-			Long activityId = Long.decode(line.getOptionValue(ARG_TARGET_DELETE_XT));
-			JSONObject activities = target.deleteXTActivity(activityId);
-			System.out.println(activities.toString(1));
-		}
-		
-		if (line.hasOption(ARG_TARGET_DELETE_AB)) {
-			TargetAPI target = new TargetAPI(apiHost, tenant, apiKey, bearerToken);
-			Long activityId = Long.decode(line.getOptionValue(ARG_TARGET_DELETE_AB));
-			JSONObject activities = target.deleteABActivity(activityId);
-			System.out.println(activities.toString(1));
-		}
-
-		if (line.hasOption(ARG_TARGET_AUDIENCES)) {
-			TargetAPI target = new TargetAPI(apiHost, tenant, apiKey, bearerToken);
-			JSONObject audiences = target.getAudiences();
-			System.out.println(audiences.toString(1));
-		}		
+	    return options;
 	}
-
-	
 
 }
