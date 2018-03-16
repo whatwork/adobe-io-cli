@@ -39,6 +39,10 @@ public class CLI {
 	private final static String ARG_TARGET_ACTIVITY_AB = "tab";
 	private final static String ARG_TARGET_ACTIVITY_AB_LONG = "getTargetAB";
 
+	private final static String ARG_TARGET_AUDIENCES = "taud";
+	private final static String ARG_TARGET_AUDIENCES_LONG = "targetAudiences";
+
+	
 	private final static String ARG_TARGET_DELETE_XT = "tdxt";
 	private final static String ARG_TARGET_DELETE_XT_LONG = "deleteTargetXT";
 	private final static String ARG_TARGET_DELETE_AB = "tdab";
@@ -153,6 +157,12 @@ public class CLI {
                 .build()
                 );	    
 
+	    options.addOption(Option.builder(ARG_TARGET_AUDIENCES)
+                .longOpt(ARG_TARGET_AUDIENCES_LONG)
+                .desc("Get all target audiences" )
+                .build()
+                );	 
+	    
 	    options.addOption(Option.builder(ARG_TARGET_DELETE_XT)
 	    		.hasArg()
                 .longOpt(ARG_TARGET_DELETE_XT_LONG)
@@ -298,7 +308,12 @@ public class CLI {
 			JSONObject activities = target.deleteABActivity(activityId);
 			System.out.println(activities.toString(1));
 		}
-		
+
+		if (line.hasOption(ARG_TARGET_AUDIENCES)) {
+			TargetAPI target = new TargetAPI(apiHost, tenant, apiKey, bearerToken);
+			JSONObject audiences = target.getAudiences();
+			System.out.println(audiences.toString(1));
+		}		
 	}
 
 	

@@ -40,6 +40,13 @@ public class TargetAPI extends APIConnection{
 		return doGetRequestJSON(getBaseURL() + "/target/activities/ab/" + activityId.toString(), CONTENT_TYPE_TARGET_JSON);
 
 	}
+
+	public JSONObject getAudiences() throws Exception {
+
+		return doGetRequestJSON(getBaseURL() + "/target/audiences", CONTENT_TYPE_TARGET_JSON);
+
+	}
+	
 	public JSONObject getActivityXT(Long activityId) throws Exception {
 
 		return doGetRequestJSON(getBaseURL() + "/target/activities/xt/" + activityId.toString(), CONTENT_TYPE_TARGET_JSON);
