@@ -34,7 +34,15 @@ Third. Run.  See the help. It will tell you what args you need.
 ```
 java -jar ./target/CLI-executable-jar-with-dependencies.jar -help
 ```
-
+# How to get an integration set up
+* if you don't have a private key and self signed certificate, follow instructions below. then return here.
+* goto console.adobe.io
+ * new integation
+ * access an API
+ * adobe target
+  * name: target CLI
+  * drag in the .CRT file from 
+  
 # How to Generate self signed certificate
 _note, you can (prolly should) change the password.  it's hardcoded to password in these examples._
 

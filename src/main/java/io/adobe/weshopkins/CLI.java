@@ -257,13 +257,13 @@ public class CLI {
 		if (line.hasOption(ARG_TARGET_ACTIVITY_XT)) {
 			TargetAPI target = new TargetAPI(apiHost, tenant, apiKey, bearerToken);
 			Long activityId = Long.decode(line.getOptionValue(ARG_TARGET_ACTIVITY_XT));
-			JSONObject activities = target.getActivity(activityId);
+			JSONObject activities = target.getActivityXT(activityId);
 			System.out.println(activities.toString(1));
 		}
 		if (line.hasOption(ARG_TARGET_ACTIVITY_AB)) {
 			TargetAPI target = new TargetAPI(apiHost, tenant, apiKey, bearerToken);
 			Long activityId = Long.decode(line.getOptionValue(ARG_TARGET_ACTIVITY_AB));
-			JSONObject activities = target.getActivity(activityId);
+			JSONObject activities = target.getActivityAB(activityId);
 			System.out.println(activities.toString(1));
 		}
 

@@ -35,9 +35,14 @@ public class TargetAPI extends APIConnection{
 
 	}
 	
-	public JSONObject getActivity(Long activityId) throws Exception {
+	public JSONObject getActivityAB(Long activityId) throws Exception {
 
-		return doGetRequestJSON(getBaseURL() + "/target/activities/" + activityId.toString(), CONTENT_TYPE_TARGET_JSON);
+		return doGetRequestJSON(getBaseURL() + "/target/activities/ab/" + activityId.toString(), CONTENT_TYPE_TARGET_JSON);
+
+	}
+	public JSONObject getActivityXT(Long activityId) throws Exception {
+
+		return doGetRequestJSON(getBaseURL() + "/target/activities/xt/" + activityId.toString(), CONTENT_TYPE_TARGET_JSON);
 
 	}
 
