@@ -68,6 +68,10 @@ public class CLI {
 	private final static String ARG_BEARER_TOKEN = "bt";
 	private final static String ARG_BEARER_TOKEN_LONG = "bearerToken";
 
+	private final static String ARG_GET_BEARER_TOKEN = "gbt";
+	private final static String ARG_GET_BEARER_TOKEN_LONG = "getBearerToken";
+
+	
 	private static Log log = LogFactory.getLog(JWT.class);
 
 	
@@ -135,6 +139,7 @@ public class CLI {
                 .build()
                 );
 
+	    
 	    options.addOption(Option.builder(ARG_CLIENT_SECRET)
 	    		.hasArg()
                 .desc("Client Secret" )
@@ -191,7 +196,14 @@ public class CLI {
                 .desc("Specify the bearer token instead of fetching from IMS host" )
                 .build()
                 );
-                
+
+	    
+	    options.addOption(Option.builder(ARG_GET_BEARER_TOKEN)
+                .longOpt(ARG_GET_BEARER_TOKEN_LONG)                
+                .desc("Get and print the bearer token" )
+                .build()
+                );
+	    
 	    try {
 	        line = parser.parse( options, args );
 	        
@@ -248,6 +260,12 @@ public class CLI {
 		}
 		
 		// go through the arguments and execute....
+
+		
+		if (line.hasOption(ARG_GET_BEARER_TOKEN)) {
+			System.out.println(bearerToken);
+			return;
+		} 
 		
 		if (line.hasOption(ARG_TARGET_ACTIVITIES)) {
 			TargetAPI target = new TargetAPI(apiHost, tenant, apiKey, bearerToken);

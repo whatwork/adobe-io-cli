@@ -64,7 +64,7 @@ public abstract class APIConnection {
 
 		int responseCode = conn.getResponseCode();
 		
-		if (responseCode == 200) /* 200 = OK */ 
+		if (responseCode == 200) /* 200 = OK  */ 
 		{
 						
 			/* read the response from the API call into a string */
