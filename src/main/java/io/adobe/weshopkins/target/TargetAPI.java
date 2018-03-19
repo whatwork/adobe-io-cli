@@ -65,5 +65,23 @@ public class TargetAPI extends APIConnection{
 
 	}
 
+	public JSONObject getOffers() throws Exception {
+
+		return doGetRequestJSON(getBaseURL() + "/target/offers/", CONTENT_TYPE_TARGET_JSON);
+
+	}
+
+	public JSONObject getOffer(Long offerId) throws Exception {
+
+		return doGetRequestJSON(getBaseURL() + "/target/offers/content/" + offerId.toString(), CONTENT_TYPE_TARGET_JSON);
+
+	}
+
+	public JSONObject deleteOffer(Long offerId) throws Exception {
+
+		return doDeleteRequestJSON(getBaseURL() + "/target/offers/content/" + offerId.toString(), CONTENT_TYPE_TARGET_JSON);
+
+	}
+
 	
 }

@@ -42,6 +42,14 @@ public class CLI {
 	private final static String ARG_TARGET_AUDIENCES = "taud";
 	private final static String ARG_TARGET_AUDIENCES_LONG = "targetAudiences";
 
+	private final static String ARG_TARGET_OFFERS = "toff";
+	private final static String ARG_TARGET_OFFERS_LONG = "targetOffers";
+
+	private final static String ARG_TARGET_DELETE_OFFER = "todel";
+	private final static String ARG_TARGET_DELETE_OFFER_LONG = "deleteOffer";
+
+	private final static String ARG_TARGET_OFFER = "toffer";
+	private final static String ARG_TARGET_OFFER_LONG = "targetOffer";
 	
 	private final static String ARG_TARGET_DELETE_XT = "tdxt";
 	private final static String ARG_TARGET_DELETE_XT_LONG = "deleteTargetXT";
@@ -186,7 +194,26 @@ public class CLI {
 			TargetAPI target = new TargetAPI(apiHost, tenant, apiKey, bearerToken);
 			JSONObject audiences = target.getAudiences();
 			System.out.println(audiences.toString(1));
-		}		
+		}
+		
+		if (line.hasOption(ARG_TARGET_OFFERS)) {
+			TargetAPI target = new TargetAPI(apiHost, tenant, apiKey, bearerToken);
+			JSONObject audiences = target.getOffers();
+			System.out.println(audiences.toString(1));
+		}			
+		if (line.hasOption(ARG_TARGET_OFFER)) {
+			TargetAPI target = new TargetAPI(apiHost, tenant, apiKey, bearerToken);
+			Long activityId = Long.decode(line.getOptionValue(ARG_TARGET_OFFER));
+			JSONObject activities = target.getOffer(activityId);
+			System.out.println(activities.toString(1));
+		}	
+		if (line.hasOption(ARG_TARGET_DELETE_OFFER)) {
+			TargetAPI target = new TargetAPI(apiHost, tenant, apiKey, bearerToken);
+			Long activityId = Long.decode(line.getOptionValue(ARG_TARGET_DELETE_OFFER));
+			JSONObject activities = target.deleteOffer(activityId);
+			System.out.println(activities.toString(1));
+		}	
+
 	}
 
 	/**
@@ -291,6 +318,32 @@ public class CLI {
                 .type(Long.class)
                 .build()
                 );
+
+	    options.addOption(Option.builder(ARG_TARGET_OFFER)
+	    		.hasArg()
+                .longOpt(ARG_TARGET_OFFER_LONG)
+                .desc("Get a specific offer by ID" )
+                .argName("id")
+                .type(Long.class)
+                .build()
+                );
+
+	    options.addOption(Option.builder(ARG_TARGET_OFFERS)
+                .longOpt(ARG_TARGET_OFFERS_LONG)
+                .desc("Get all offers" )
+                .build()
+                );
+	    
+
+	    options.addOption(Option.builder(ARG_TARGET_DELETE_OFFER)
+	    		.hasArg()
+                .longOpt(ARG_TARGET_DELETE_OFFER_LONG)
+                .desc("Delete a specific target offer" )
+                .argName("id")
+                .type(Long.class)
+                .build()
+                );
+	    
 	    
 	    options.addOption(Option.builder(ARG_TARGET_ACTIVITY_AB)
 	    		.hasArg()
