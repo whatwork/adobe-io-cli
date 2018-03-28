@@ -1,4 +1,4 @@
-package io.adobe.weshopkins.target;
+package io.adobe.weshopkins.api;
 
 
 import org.json.JSONObject;
@@ -16,13 +16,9 @@ public class TargetAPI extends APIConnection{
 	
 	private final static String CONTENT_TYPE_TARGET_JSON = "application/vnd.adobe.target.v1+json";
 	
-	
-	private String tenant;	 /* your adobe target tenant id */
-	
 	/* constructor */
 	public TargetAPI(String apiHost, String tenant, String apiKey, String bearerToken) {
 		super(apiHost, apiKey, bearerToken);
-		this.tenant=tenant;
 		setBaseURL("https://" + apiHost + "/" + tenant);		
 	}
 
@@ -46,6 +42,13 @@ public class TargetAPI extends APIConnection{
 		return doGetRequestJSON(getBaseURL() + "/target/audiences", CONTENT_TYPE_TARGET_JSON);
 
 	}
+
+	public JSONObject getAudience(Long audienceId) throws Exception {
+
+		return doGetRequestJSON(getBaseURL() + "/target/audiences/" + audienceId.toString(), CONTENT_TYPE_TARGET_JSON);
+
+	}
+
 	
 	public JSONObject getActivityXT(Long activityId) throws Exception {
 
@@ -80,6 +83,12 @@ public class TargetAPI extends APIConnection{
 	public JSONObject deleteOffer(Long offerId) throws Exception {
 
 		return doDeleteRequestJSON(getBaseURL() + "/target/offers/content/" + offerId.toString(), CONTENT_TYPE_TARGET_JSON);
+
+	}
+
+	public JSONObject deleteAudience(Long audienceId) throws Exception {
+
+		return doDeleteRequestJSON(getBaseURL() + "/target/audiences/" + audienceId.toString(), CONTENT_TYPE_TARGET_JSON);
 
 	}
 

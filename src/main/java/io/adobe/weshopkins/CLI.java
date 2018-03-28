@@ -7,7 +7,7 @@ import java.util.Properties;
 import org.json.JSONObject;
 
 import io.adobe.weshopkins.JWT;
-import io.adobe.weshopkins.target.TargetAPI;
+import io.adobe.weshopkins.api.TargetAPI;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
@@ -32,29 +32,34 @@ public class CLI {
 	
 	private final static String PROPERTIES_FILE_NAME = "adobeio.properties";
 	
-	private final static String ARG_TARGET_ACTIVITIES = "tacts";
-	private final static String ARG_TARGET_ACTIVITIES_LONG = "targetActivities";
-	private final static String ARG_TARGET_ACTIVITY_XT = "txt";
-	private final static String ARG_TARGET_ACTIVITY_XT_LONG = "getTargetXT";
-	private final static String ARG_TARGET_ACTIVITY_AB = "tab";
-	private final static String ARG_TARGET_ACTIVITY_AB_LONG = "getTargetAB";
+	private final static String ARG_TARGET_ACTIVITIES = "acts";
+	private final static String ARG_TARGET_ACTIVITIES_LONG = "getActivities";
+	private final static String ARG_TARGET_ACTIVITY_XT = "xtid";
+	private final static String ARG_TARGET_ACTIVITY_XT_LONG = "getActivityXT";
+	private final static String ARG_TARGET_ACTIVITY_AB = "abid";
+	private final static String ARG_TARGET_ACTIVITY_AB_LONG = "getActivityAB";
 
-	private final static String ARG_TARGET_AUDIENCES = "taud";
-	private final static String ARG_TARGET_AUDIENCES_LONG = "targetAudiences";
+	private final static String ARG_TARGET_AUDIENCES = "aud";
+	private final static String ARG_TARGET_AUDIENCES_LONG = "getAudiences";
+	private final static String ARG_TARGET_AUDIENCE = "auid";
+	private final static String ARG_TARGET_AUDIENCE_LONG = "getAudience";
+	private final static String ARG_TARGET_AUDIENCE_DELETE = "dau";
+	private final static String ARG_TARGET_AUDIENCE_DELETE_LONG = "deleteAudience";
 
-	private final static String ARG_TARGET_OFFERS = "toff";
-	private final static String ARG_TARGET_OFFERS_LONG = "targetOffers";
+	
+	private final static String ARG_TARGET_OFFERS = "offers";
+	private final static String ARG_TARGET_OFFERS_LONG = "getOffers";
 
-	private final static String ARG_TARGET_DELETE_OFFER = "todel";
+	private final static String ARG_TARGET_DELETE_OFFER = "doff";
 	private final static String ARG_TARGET_DELETE_OFFER_LONG = "deleteOffer";
 
-	private final static String ARG_TARGET_OFFER = "toffer";
-	private final static String ARG_TARGET_OFFER_LONG = "targetOffer";
+	private final static String ARG_TARGET_OFFER = "oid";
+	private final static String ARG_TARGET_OFFER_LONG = "getOffer";
 	
-	private final static String ARG_TARGET_DELETE_XT = "tdxt";
-	private final static String ARG_TARGET_DELETE_XT_LONG = "deleteTargetXT";
-	private final static String ARG_TARGET_DELETE_AB = "tdab";
-	private final static String ARG_TARGET_DELETE_AB_LONG = "targetDeleteAB";
+	private final static String ARG_TARGET_DELETE_XT = "dxt";
+	private final static String ARG_TARGET_DELETE_XT_LONG = "deleteActivityXT";
+	private final static String ARG_TARGET_DELETE_AB = "dab";
+	private final static String ARG_TARGET_DELETE_AB_LONG = "deleteActivityAB";
 	
 	private final static String ARG_ORG_ID = "orgid";
 	private final static String ARG_ORG_ID_LONG = "organizationId";
@@ -196,6 +201,16 @@ public class CLI {
 			System.out.println(audiences.toString(1));
 		}
 		
+		if (line.hasOption(ARG_TARGET_AUDIENCE)) {
+			TargetAPI target = new TargetAPI(apiHost, tenant, apiKey, bearerToken);
+			JSONObject audiences = target.getAudience(Long.decode(line.getOptionValue(ARG_TARGET_AUDIENCE)));
+			System.out.println(audiences.toString(1));
+		}		
+		if (line.hasOption(ARG_TARGET_AUDIENCE_DELETE)) {
+			TargetAPI target = new TargetAPI(apiHost, tenant, apiKey, bearerToken);
+			JSONObject audiences = target.deleteAudience(Long.decode(line.getOptionValue(ARG_TARGET_AUDIENCE)));
+			System.out.println(audiences.toString(1));
+		}			
 		if (line.hasOption(ARG_TARGET_OFFERS)) {
 			TargetAPI target = new TargetAPI(apiHost, tenant, apiKey, bearerToken);
 			JSONObject audiences = target.getOffers();
@@ -301,6 +316,22 @@ public class CLI {
                 .build()
                 );	 
 	    
+	    options.addOption(Option.builder(ARG_TARGET_AUDIENCE)
+	    		.hasArg()
+                .longOpt(ARG_TARGET_AUDIENCE_LONG)
+                .desc("Get a specific target audience" )
+                .argName("id")
+                .type(Long.class)
+                .build()
+                );	    
+	    options.addOption(Option.builder(ARG_TARGET_AUDIENCE_DELETE)
+	    		.hasArg()
+                .longOpt(ARG_TARGET_AUDIENCE_DELETE_LONG)
+                .desc("Delete a specific target audience" )
+                .argName("id")
+                .type(Long.class)
+                .build()
+                );	 	    
 	    options.addOption(Option.builder(ARG_TARGET_DELETE_XT)
 	    		.hasArg()
                 .longOpt(ARG_TARGET_DELETE_XT_LONG)

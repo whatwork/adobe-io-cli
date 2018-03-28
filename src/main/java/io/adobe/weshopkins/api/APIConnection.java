@@ -1,4 +1,4 @@
-package io.adobe.weshopkins.target;
+package io.adobe.weshopkins.api;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
