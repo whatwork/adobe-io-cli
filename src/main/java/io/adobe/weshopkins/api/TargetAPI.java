@@ -91,6 +91,11 @@ public class TargetAPI extends APIConnection{
 		return doDeleteRequestJSON(getBaseURL() + "/target/audiences/" + audienceId.toString(), CONTENT_TYPE_TARGET_JSON);
 
 	}
+	
+	public JSONObject getProfile(String tenant, String thirdPartyId) throws Exception {
 
+		return doGetRequestJSON("https://" + tenant + ".tt.omtrdc.net/rest/v1/profiles/thirdPartyId/" + thirdPartyId + "?client=" + tenant, CONTENT_TYPE_TARGET_JSON);
+
+	}
 	
 }

@@ -1,7 +1,11 @@
 package io.adobe.weshopkins;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.Properties;
 
 import org.json.JSONObject;
@@ -31,7 +35,10 @@ import org.apache.commons.logging.LogFactory;
 public class CLI {
 	
 	private final static String PROPERTIES_FILE_NAME = "adobeio.properties";
-	
+	private final static String ARG_PROPERTIES = "properties";
+
+	private final static String ARG_PROPERTIES_SAMPLE = "propertiesSample";
+
 	private final static String ARG_TARGET_ACTIVITIES = "acts";
 	private final static String ARG_TARGET_ACTIVITIES_LONG = "getActivities";
 	private final static String ARG_TARGET_ACTIVITY_XT = "xtid";
@@ -46,6 +53,8 @@ public class CLI {
 	private final static String ARG_TARGET_AUDIENCE_DELETE = "dau";
 	private final static String ARG_TARGET_AUDIENCE_DELETE_LONG = "deleteAudience";
 
+	private final static String ARG_TARGET_PROFILE = "pro";
+	private final static String ARG_TARGET_PROFILE_LONG = "getProfile";
 	
 	private final static String ARG_TARGET_OFFERS = "offers";
 	private final static String ARG_TARGET_OFFERS_LONG = "getOffers";
@@ -103,8 +112,7 @@ public class CLI {
 	    try {
 	        line = parser.parse( options, args );
 	        
-	        // there is no arg'less invocation of this tool
-	        if (args.length<1)
+	        if (args.length<1 || line.hasOption(ARG_GET_BEARER_TOKEN))
 	        	throw new ParseException("No arguments specified");
 	    }
 	    catch( ParseException exp ) {
@@ -116,19 +124,29 @@ public class CLI {
 	        return;
 	    }
 		
-	    // TODO : add an arg to select a props file
-	    // TODO : default to a homedir .adobeio.properties file
 
 	    Properties prop = new Properties();
-		
-		InputStream inputStream = new CLI().getClass().getClassLoader().getResourceAsStream(PROPERTIES_FILE_NAME);
+	    
+	    // check for properties file on command line
+	    // default to ~/.adobeio.properties
+	    String propFileName = line.getOptionValue(ARG_PROPERTIES, System.getProperty("user.home") + File.separator + "." + PROPERTIES_FILE_NAME);
+	    File propFile = new File(propFileName);
+	    
+	    if (propFile.exists()) 
+	    {
+	    	prop.load(new FileInputStream(propFile));
 
-		if (inputStream != null) {
-			prop.load(inputStream);
-			log.debug("Loaded properties file " + PROPERTIES_FILE_NAME);
-		} else {
-			throw new FileNotFoundException("Property file '" + PROPERTIES_FILE_NAME + "' not found in the classpath");
-		}
+	    } else {
+
+	    	System.err.println("Warning: no properties file specified nor found in home directory.  Use argument " + ARG_PROPERTIES_SAMPLE + " for sample props file");
+//		    InputStream inputStream = new CLI().getClass().getClassLoader().getResourceAsStream(PROPERTIES_FILE_NAME);
+//			if (inputStream != null) {
+//				prop.load(inputStream);
+//				log.debug("Loaded properties file " + PROPERTIES_FILE_NAME);
+//			} else {
+//				throw new FileNotFoundException("Property file '" + PROPERTIES_FILE_NAME + "' not found in the classpath");
+//			}
+	    }
 		
 		// API key information from properties file
 		String orgId = line.getOptionValue(ARG_ORG_ID, prop.getProperty("enterprise.organizationId"));
@@ -158,7 +176,8 @@ public class CLI {
 		// go through the arguments and execute....
 
 		
-		if (line.hasOption(ARG_GET_BEARER_TOKEN)) {
+
+		if (line.hasOption(ARG_HELP)) {
 			System.out.println(bearerToken);
 			return;
 		} 
@@ -210,6 +229,12 @@ public class CLI {
 			TargetAPI target = new TargetAPI(apiHost, tenant, apiKey, bearerToken);
 			JSONObject audiences = target.deleteAudience(Long.decode(line.getOptionValue(ARG_TARGET_AUDIENCE)));
 			System.out.println(audiences.toString(1));
+		}	
+		
+		if (line.hasOption(ARG_TARGET_PROFILE)) {
+			TargetAPI target = new TargetAPI(apiHost, tenant, apiKey, bearerToken);
+			JSONObject profile = target.getProfile(tenant, line.getOptionValue(ARG_TARGET_PROFILE));
+			System.out.println(profile.toString(1));
 		}			
 		if (line.hasOption(ARG_TARGET_OFFERS)) {
 			TargetAPI target = new TargetAPI(apiHost, tenant, apiKey, bearerToken);
@@ -229,6 +254,13 @@ public class CLI {
 			System.out.println(activities.toString(1));
 		}	
 
+		if (line.hasOption(ARG_PROPERTIES_SAMPLE)) {
+			
+			StringBuffer sb = new StringBuffer();
+			BufferedReader br = new BufferedReader(new InputStreamReader(new CLI().getClass().getClassLoader().getResourceAsStream("adobeio.sample.properties"), "UTF-8"));
+			for (int c = br.read(); c != -1; c = br.read()) sb.append((char)c);
+			System.out.println(sb.toString());  
+		}	
 	}
 
 	/**
@@ -315,7 +347,13 @@ public class CLI {
                 .desc("Get all target audiences" )
                 .build()
                 );	 
-	    
+	    options.addOption(Option.builder(ARG_PROPERTIES)
+	    		.hasArg()
+                .desc("Specify properties file.  Default is home directory .adobeio.properties" )
+                .argName("filename.properties")
+                .type(String.class)
+                .build()
+                );	 	    
 	    options.addOption(Option.builder(ARG_TARGET_AUDIENCE)
 	    		.hasArg()
                 .longOpt(ARG_TARGET_AUDIENCE_LONG)
@@ -393,12 +431,26 @@ public class CLI {
                 .build()
                 );
 
+	    options.addOption(Option.builder(ARG_TARGET_PROFILE)
+	    		.hasArg()
+                .longOpt(ARG_TARGET_PROFILE_LONG)
+                .desc("Get a profile" )
+                .argName("thirdPartyId")
+                .type(String.class)
+                .build()
+                );
+
 	    
 	    options.addOption(Option.builder(ARG_BEARER_TOKEN)
                 .hasArg()
                 .longOpt(ARG_BEARER_TOKEN_LONG)
                 .argName("token")                
                 .desc("Specify the bearer token instead of fetching from IMS host" )
+                .build()
+                );
+
+	    options.addOption(Option.builder(ARG_PROPERTIES_SAMPLE)
+                .desc("Display sample properties file" )
                 .build()
                 );
 
