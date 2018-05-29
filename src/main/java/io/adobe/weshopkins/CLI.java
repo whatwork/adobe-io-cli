@@ -129,7 +129,7 @@ public class CLI {
 	    
 	    // check for properties file on command line
 	    // default to ~/.adobeio.properties
-	    String propFileName = line.getOptionValue(ARG_PROPERTIES, System.getProperty("user.home") + File.separator + "." + PROPERTIES_FILE_NAME);
+	    String propFileName = line.getOptionValue(ARG_PROPERTIES, System.getProperty("user.home") + File.separator + PROPERTIES_FILE_NAME);
 	    File propFile = new File(propFileName);
 	    
 	    if (propFile.exists()) 
@@ -349,7 +349,7 @@ public class CLI {
                 );	 
 	    options.addOption(Option.builder(ARG_PROPERTIES)
 	    		.hasArg()
-                .desc("Specify properties file.  Default is home directory .adobeio.properties" )
+                .desc("Specify properties file.  Default is [home directory]/adobeio.properties" )
                 .argName("filename.properties")
                 .type(String.class)
                 .build()
