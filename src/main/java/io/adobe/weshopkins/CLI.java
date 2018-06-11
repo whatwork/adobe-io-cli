@@ -3,14 +3,13 @@ package io.adobe.weshopkins;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.Properties;
 
 import org.json.JSONObject;
 
 import io.adobe.weshopkins.JWT;
+import io.adobe.weshopkins.api.CampaignAPI;
 import io.adobe.weshopkins.api.TargetAPI;
 
 import org.apache.commons.cli.CommandLine;
@@ -34,10 +33,18 @@ import org.apache.commons.logging.LogFactory;
 
 public class CLI {
 	
-	private final static String PROPERTIES_FILE_NAME = "adobeio.properties";
-	private final static String ARG_PROPERTIES = "properties";
 
-	private final static String ARG_PROPERTIES_SAMPLE = "propertiesSample";
+	/* --- campaign --- */
+	private final static String ARG_CAMPAIGN_PROFILE = "acspro";
+	private final static String ARG_CAMPAIGN_PROFILE_LONG = "getCampaignProfile";
+
+	private final static String ARG_CAMPAIGN_TENANT = "acsTenant";
+	private final static String ARG_CAMPAIGN_TENANT_LONG = "campaignTenant";
+
+	
+	private final static String ARG_CAMPAIGN_PROFILES = "acallpro";
+	private final static String ARG_CAMPAIGN_PROFILES_LONG = "getCampaignProfiles";
+	/* --- target --- */
 
 	private final static String ARG_TARGET_ACTIVITIES = "acts";
 	private final static String ARG_TARGET_ACTIVITIES_LONG = "getActivities";
@@ -53,8 +60,8 @@ public class CLI {
 	private final static String ARG_TARGET_AUDIENCE_DELETE = "dau";
 	private final static String ARG_TARGET_AUDIENCE_DELETE_LONG = "deleteAudience";
 
-	private final static String ARG_TARGET_PROFILE = "pro";
-	private final static String ARG_TARGET_PROFILE_LONG = "getProfile";
+	private final static String ARG_TARGET_PROFILE = "atpro";
+	private final static String ARG_TARGET_PROFILE_LONG = "getTargetProfile";
 	
 	private final static String ARG_TARGET_OFFERS = "offers";
 	private final static String ARG_TARGET_OFFERS_LONG = "getOffers";
@@ -70,6 +77,14 @@ public class CLI {
 	private final static String ARG_TARGET_DELETE_AB = "dab";
 	private final static String ARG_TARGET_DELETE_AB_LONG = "deleteActivityAB";
 	
+	
+	/* --- environmental --- */
+	
+	private final static String PROPERTIES_FILE_NAME = "adobeio.properties";
+	private final static String ARG_PROPERTIES = "properties";
+
+	private final static String ARG_PROPERTIES_SAMPLE = "propertiesSample";
+	
 	private final static String ARG_ORG_ID = "orgid";
 	private final static String ARG_ORG_ID_LONG = "organizationId";
 	
@@ -78,7 +93,6 @@ public class CLI {
 	
 	private final static String ARG_API_KEY = "apiKey";
 	private final static String ARG_TENANT = "tenant";
-
 	
 	private final static String ARG_PRIV_KEY = "K";
 	private final static String ARG_PRIV_KEY_LONG = "privateKeyFile";
@@ -96,6 +110,8 @@ public class CLI {
 
 	private final static String ARG_GET_BEARER_TOKEN = "gbt";
 	private final static String ARG_GET_BEARER_TOKEN_LONG = "getBearerToken";
+	
+	private final static String ARG_VERBOSE = "v";
 
 	
 	private static Log log = LogFactory.getLog(JWT.class);
@@ -126,7 +142,8 @@ public class CLI {
 		
 
 	    Properties prop = new Properties();
-	    
+	    boolean verbose = line.hasOption(ARG_VERBOSE);
+
 	    // check for properties file on command line
 	    // default to ~/.adobeio.properties
 	    String propFileName = line.getOptionValue(ARG_PROPERTIES, System.getProperty("user.home") + File.separator + PROPERTIES_FILE_NAME);
@@ -134,6 +151,10 @@ public class CLI {
 	    
 	    if (propFile.exists()) 
 	    {
+	    	if (verbose) 
+	    	{
+	    		System.out.println("Loading properties from " + propFile);
+	    	}
 	    	prop.load(new FileInputStream(propFile));
 
 	    } else {
@@ -147,17 +168,30 @@ public class CLI {
 //				throw new FileNotFoundException("Property file '" + PROPERTIES_FILE_NAME + "' not found in the classpath");
 //			}
 	    }
+	    
 		
 		// API key information from properties file
 		String orgId = line.getOptionValue(ARG_ORG_ID, prop.getProperty("enterprise.organizationId"));
 		String technicalAccountId = line.getOptionValue(ARG_TECH_ID, prop.getProperty("enterprise.technicalAccountId"));
 		String apiKey = line.getOptionValue(ARG_API_KEY,prop.getProperty("enterprise.apiKey")); 
-		String tenant = line.getOptionValue(ARG_TENANT,prop.getProperty("enterprise.tenant")); 
+		String tenant = line.getOptionValue(ARG_TENANT,prop.getProperty("enterprise.tenant"));
+		String campaignTenant = line.getOptionValue(ARG_CAMPAIGN_TENANT,prop.getProperty("enterprise.campaignTenant"));
 		String pathToSecretKey = line.getOptionValue(ARG_PRIV_KEY,prop.getProperty("enterprise.privateKeyFilename")); 
 		String imsHost = line.getOptionValue(ARG_IMS_HOST,prop.getProperty("server.imsHost")); 
 		String clientSecret = line.getOptionValue(ARG_CLIENT_SECRET,prop.getProperty("enterprise.clientSecret"));
 		String apiHost = line.getOptionValue(ARG_API_HOST,prop.getProperty("server.apiHost"));
 
+		if (verbose) {
+			System.out.println("orgId:" + orgId);
+			System.out.println("technicalAccountId: " + technicalAccountId);
+			System.out.println("apiKey: " + apiKey ); 
+			System.out.println("tenant: "+  tenant) ; 
+			System.out.println("campaignTenant: "+  campaignTenant) ; 
+			System.out.println("secret key: "+ pathToSecretKey ); 
+			System.out.println("imsHost: " +  imsHost);
+			System.out.println("apiHost: " + apiHost);
+			System.out.println("clientSecret: " + clientSecret);
+		}
 		// Get a JWT token 
 		String jwtToken = JWT.getJWT(imsHost, orgId, technicalAccountId, apiKey, pathToSecretKey);
 		log.debug("JWT:" + jwtToken);
@@ -174,8 +208,6 @@ public class CLI {
 		}
 		
 		// go through the arguments and execute....
-
-		
 
 		if (line.hasOption(ARG_HELP)) {
 			System.out.println(bearerToken);
@@ -254,6 +286,21 @@ public class CLI {
 			System.out.println(activities.toString(1));
 		}	
 
+		
+		/* -- campaign options -- */
+		
+		if (line.hasOption(ARG_CAMPAIGN_PROFILE)) {
+			CampaignAPI acs = new CampaignAPI(apiHost, campaignTenant, apiKey, bearerToken);
+			JSONObject profile = acs.getProfile(line.getOptionValue(ARG_CAMPAIGN_PROFILE));
+			System.out.println(profile.toString(1));
+		}			
+		if (line.hasOption(ARG_CAMPAIGN_PROFILES)) {
+			CampaignAPI acs = new CampaignAPI(apiHost, campaignTenant, apiKey, bearerToken);
+			JSONObject profile = acs.getProfiles();
+			System.out.println(profile.toString(1));
+		}		
+		
+		/* -- app options  --*/
 		if (line.hasOption(ARG_PROPERTIES_SAMPLE)) {
 			
 			StringBuffer sb = new StringBuffer();
@@ -274,6 +321,8 @@ public class CLI {
 	    /* add all the acceptable command line arguments */
 	    Options options = new Options();
 	    options.addOption(new Option( ARG_HELP, "print this message" ));
+	    
+	    options.addOption(new Option( ARG_VERBOSE, "Lots of details on what's happening" ));
 
 	    options.addOption(Option.builder(ARG_ORG_ID)
 	    		.hasArg()
@@ -460,6 +509,33 @@ public class CLI {
                 .desc("Get and print the bearer token" )
                 .build()
                 );
+	    
+	    /* --- campaign options --- */
+	    
+	    options.addOption(Option.builder(ARG_CAMPAIGN_TENANT)
+	    		.hasArg()
+                .longOpt(ARG_CAMPAIGN_TENANT_LONG)
+                .desc("Campaign tenant (as a FQDN)" )
+                .argName("campaignTenantId")
+                .type(String.class)
+                .build()
+                );
+	    
+	    options.addOption(Option.builder(ARG_CAMPAIGN_PROFILE)
+	    		.hasArg()
+                .longOpt(ARG_CAMPAIGN_PROFILE_LONG)
+                .desc("Get a profile by email address" )
+                .argName("emailAddress")
+                .type(String.class)
+                .build()
+                );
+
+	    options.addOption(Option.builder(ARG_CAMPAIGN_PROFILES)
+                .longOpt(ARG_CAMPAIGN_PROFILES_LONG)
+                .desc("Get all profiles" )
+                .build()
+                );
+
 	    
 	    return options;
 	}

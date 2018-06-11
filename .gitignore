@@ -1,3 +1,7 @@
 target
 .classpath
 .project
+adobe-io-private.der
+adobe-io-private.key
+adobe-io.crt
+adobe-io.csr

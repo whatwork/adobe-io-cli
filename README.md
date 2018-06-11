@@ -47,15 +47,15 @@ java -jar ./target/CLI-executable-jar-with-dependencies.jar -help
 _note, you can (prolly should) change the password.  it's hardcoded to password in these examples._
 
 ```
-openssl genrsa -aes256 -out target-test-private.key -passout pass:password 4096
+openssl genrsa -aes256 -out adobe-io-private.key -passout pass:password 4096
 
-openssl rsa -in target-test-private.key -passin pass:password -out target-test-private.key
+openssl rsa -in adobe-io-private.key -passin pass:password -out adobe-io-private.key
 
-openssl req -sha256 -new -key target-test-private.key -out target-test-.csr -subj '/CN=localhost'
+openssl req -sha256 -new -key adobe-io-private.key -out adobe-io.csr -subj '/CN=localhost'
 
-openssl x509 -req -days 365 -in target-test-.csr -signkey target-test-private.key -out target-test-.crt
+openssl x509 -req -days 365 -in adobe-io.csr -signkey adobe-io-private.key -out adobe-io.crt
 
-openssl pkcs8 -topk8 -inform PEM -outform DER -in target-test-private.key -out target-test-private.der -nocrypt
+openssl pkcs8 -topk8 -inform PEM -outform DER -in adobe-io-private.key -out adobe-io-private.der -nocrypt
 ```
 
 ## For debugging HTTPS calls
