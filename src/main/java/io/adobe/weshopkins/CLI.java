@@ -128,7 +128,7 @@ public class CLI {
 	    try {
 	        line = parser.parse( options, args );
 	        
-	        if (args.length<1 || line.hasOption(ARG_GET_BEARER_TOKEN))
+	        if (args.length<1 || line.hasOption(ARG_HELP))
 	        	throw new ParseException("No arguments specified");
 	    }
 	    catch( ParseException exp ) {
@@ -207,11 +207,8 @@ public class CLI {
 			log.debug("Bearer fetched: " + bearerToken);
 		}
 		
-		// go through the arguments and execute....
-
-		if (line.hasOption(ARG_HELP)) {
-			System.out.println(bearerToken);
-			return;
+		if (line.hasOption(ARG_GET_BEARER_TOKEN) || verbose) {
+			System.out.println("bearerToken: " + bearerToken);
 		} 
 		
 		if (line.hasOption(ARG_TARGET_ACTIVITIES)) {
