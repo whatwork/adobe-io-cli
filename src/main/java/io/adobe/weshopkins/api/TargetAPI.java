@@ -98,4 +98,22 @@ public class TargetAPI extends APIConnection{
 
 	}
 	
+	public JSONObject getProfileAttributes() throws Exception {
+
+		return doDeleteRequestJSON(getBaseURL() + "/target/profileattributes/mbox", CONTENT_TYPE_TARGET_JSON);
+
+	}
+	
+	public JSONObject getMboxes() throws Exception {
+
+		return doGetRequestJSON(getBaseURL() + "/target/mboxes", CONTENT_TYPE_TARGET_JSON);
+
+	}
+
+	public JSONObject getMboxParams(String mboxName) throws Exception {
+
+		return doDeleteRequestJSON(getBaseURL() + "/target/mbox/" + mboxName, CONTENT_TYPE_TARGET_JSON);
+
+	}
+	
 }

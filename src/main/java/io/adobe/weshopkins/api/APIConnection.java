@@ -22,12 +22,21 @@ public abstract class APIConnection {
 	private String apiKey;
 	private String bearerToken;
 	private String baseURL;
+	private boolean debug;
+	
+	public boolean isDebug() {
+		return debug;
+	}
+	public void setDebug(boolean debug) {
+		this.debug = debug;
+	}
 	
 	public APIConnection(String apiHost, String apiKey, String bearerToken) {
 		this.apiHost=apiHost;
 		this.apiKey=apiKey;
 		this.bearerToken=bearerToken;
 		this.setBaseURL("https://" + apiHost);
+		this.debug=false;
 	}
 	
 	public JSONObject doGetRequestJSON(String endpoint, String contentType) throws Exception {
@@ -40,6 +49,11 @@ public abstract class APIConnection {
 	
 	private JSONObject doRequestJSON(String endpoint, String method, String contentType) throws Exception {
 
+		if(debug)
+		{
+			System.out.println(endpoint);
+		}
+		
 		/* set up a connection to the Adobe.io API Server */
 		HttpsURLConnection conn = (HttpsURLConnection) new URL(endpoint).openConnection();
 		conn.setRequestMethod(method);
@@ -55,12 +69,14 @@ public abstract class APIConnection {
 		// TODO: put values in config file
 		conn.setConnectTimeout(30000);
 		conn.setReadTimeout(30000);
-		
-//		log.debug("getActivities header");
-//		for (String key : conn.getRequestProperties().keySet())
-//		{
-//			log.debug(key + ": " + conn.getRequestProperty(key));
-//		}
+
+		if(debug)
+		{
+			for (String key : conn.getRequestProperties().keySet())
+			{
+				System.out.println(key + ": " + conn.getRequestProperty(key));
+			}
+		}
 
 		int responseCode = conn.getResponseCode();
 		
