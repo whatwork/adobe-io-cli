@@ -101,6 +101,7 @@ public class CLI {
 		String imsHost = line.getOptionValue(Constants.ARG_IMS_HOST,prop.getProperty("server.imsHost")); 
 		String clientSecret = line.getOptionValue(Constants.ARG_CLIENT_SECRET,prop.getProperty("enterprise.clientSecret"));
 		String apiHost = line.getOptionValue(Constants.ARG_API_HOST,prop.getProperty("server.apiHost"));
+		String targetClientId = line.getOptionValue(Constants.ARG_TARGET_CLIENT_ID,prop.getProperty("target.clientId"));
 
 		if (verbose) {
 			System.out.println("orgId:" + orgId);
@@ -112,6 +113,7 @@ public class CLI {
 			System.out.println("imsHost: " +  imsHost);
 			System.out.println("apiHost: " + apiHost);
 			System.out.println("clientSecret: " + clientSecret);
+			System.out.println("targetClientId: " + targetClientId);
 		}
 		// Get a JWT token 
 		String jwtToken = JWT.getJWT(imsHost, orgId, technicalAccountId, apiKey, pathToSecretKey);
@@ -162,7 +164,7 @@ public class CLI {
 			}
 		}
 
-		TargetAPI target = new TargetAPI(apiHost, tenant, apiKey, bearerToken);
+		TargetAPI target = new TargetAPI(apiHost, tenant, targetClientId, apiKey, bearerToken);
 		target.setDebug(verbose);
 
 		if (line.hasOption(Constants.ARG_GET_BEARER_TOKEN) || verbose) {
@@ -233,7 +235,7 @@ public class CLI {
 		
 		if (line.hasOption(Constants.ARG_TARGET_PROFILE)) {
 
-			JSONObject profile = target.getProfile(tenant, line.getOptionValue(Constants.ARG_TARGET_PROFILE));
+			JSONObject profile = target.getProfile(line.getOptionValue(Constants.ARG_TARGET_PROFILE));
 			System.out.println(profile.toString(1));
 		}		
 		
@@ -242,6 +244,27 @@ public class CLI {
 			JSONObject profile = target.getProfileAttributes();
 			System.out.println(profile.toString(1));
 		}	
+		
+		if (line.hasOption(Constants.ARG_TARGET_SERVER_SIDE)) {
+
+			if (postBody.length()<1) {
+				System.err.println("Doing Server side delivery but no post body. Must specify " + Constants.ARG_POST_STDIN + " or " + Constants.ARG_POST_FILENAME );
+				return;
+			}
+			
+//			curl -X POST \
+//			  'https://adobedemoamericas72.tt.omtrdc.net/rest/v1/mbox/my-session-id?client=adobedemoamericas72' \
+//			  -H 'cache-control: no-cache' \
+//			  -H 'content-type: application/json' \
+//			  -d '{
+//			  "mbox" : "recs-api-box"
+//			}'
+
+            
+			JSONObject ssdelivery = target.getServerSideDelivery("a@b,c", "1234", new JSONObject(postBody));
+			System.out.println(ssdelivery.toString(1));
+		}	
+		
 		
 		if (line.hasOption(Constants.ARG_TARGET_OFFERS)) {
 
@@ -409,12 +432,28 @@ public class CLI {
                 .type(Long.class)
                 .build()
                 );	 	    
+	    
+	    options.addOption(Option.builder(Constants.ARG_TARGET_CLIENT_ID)
+	    		.hasArg()
+	    		.longOpt(Constants.ARG_TARGET_CLIENT_ID_LONG)
+                .desc("Target Client ID" )
+                .argName("id")
+                .type(String.class)
+                .build()
+                );
+	    
 	    options.addOption(Option.builder(Constants.ARG_TARGET_DELETE_XT)
 	    		.hasArg()
                 .longOpt(Constants.ARG_TARGET_DELETE_XT_LONG)
                 .desc("Delete a specific  XT target activity" )
                 .argName("id")
                 .type(Long.class)
+                .build()
+                );
+	    
+	    options.addOption(Option.builder(Constants.ARG_TARGET_SERVER_SIDE)
+                .longOpt(Constants.ARG_TARGET_SERVER_SIDE_LONG)
+                .desc("Call server side delivery api. Must specify " + Constants.ARG_POST_STDIN + " or " + Constants.ARG_POST_FILENAME )
                 .build()
                 );
 

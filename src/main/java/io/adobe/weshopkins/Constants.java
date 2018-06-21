@@ -28,7 +28,13 @@ public class Constants {
 	public final static String ARG_TARGET_AUDIENCE_LONG = "getTargetAudience";
 	public final static String ARG_TARGET_AUDIENCE_DELETE = "ataudel";
 	public final static String ARG_TARGET_AUDIENCE_DELETE_LONG = "deleteTargetAudience";
-
+	
+	public final static String ARG_TARGET_CLIENT_ID = "atcli";
+	public final static String ARG_TARGET_CLIENT_ID_LONG = "targetClientId";
+	
+	public final static String ARG_TARGET_SERVER_SIDE = "atssd";
+	public final static String ARG_TARGET_SERVER_SIDE_LONG = "getTargetServerSideDelivery";
+	
 	public final static String ARG_TARGET_PROFILE = "atpro";
 	public final static String ARG_TARGET_PROFILE_LONG = "getTargetProfile";
 	

@@ -2,6 +2,7 @@ package io.adobe.weshopkins.api;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.net.URL;
 
 import javax.net.ssl.HttpsURLConnection;
@@ -23,6 +24,8 @@ public abstract class APIConnection {
 	private String bearerToken;
 	private String baseURL;
 	private boolean debug;
+	
+	private final String CONTENT_TYPE_JSON = "application/json; charset=UTF-8";
 	
 	public boolean isDebug() {
 		return debug;
@@ -102,6 +105,69 @@ public abstract class APIConnection {
 		
 	}
 	
+	public JSONObject doPostRequestJSON(String endpoint, JSONObject body ) throws Exception {
+
+		if(debug)
+		{
+			System.out.println(endpoint);
+		}
+		
+		/* set up a connection to the Adobe.io API Server */
+		HttpsURLConnection conn = (HttpsURLConnection) new URL(endpoint).openConnection();
+		conn.setRequestMethod("POST");
+		conn.setDoOutput(true);
+		
+		/* Set the request headers */
+		// conn.setRequestProperty("authorization", "Bearer " + bearerToken );
+		conn.setRequestProperty("content-type", CONTENT_TYPE_JSON);
+		// conn.setRequestProperty("x-api-key", apiKey);
+		conn.setRequestProperty("cache-control", "no-cache");
+		conn.setUseCaches(false);
+		// TODO: put values in config file
+		conn.setConnectTimeout(30000);
+		conn.setReadTimeout(30000);
+		
+		if(debug)
+		{
+			for (String key : conn.getRequestProperties().keySet())
+			{
+				System.out.println(key + ": " + conn.getRequestProperty(key));
+			}
+			System.out.println("body:" + body.toString());
+		}
+
+		
+		byte[] out = body.toString().getBytes();
+		conn.setFixedLengthStreamingMode(out.length);
+		
+		conn.connect();
+		try(OutputStream os = conn.getOutputStream()) {
+		    os.write(out);
+		}
+		
+		int responseCode = conn.getResponseCode();
+		
+		if (responseCode == 200) /* 200 = OK  */ 
+		{
+						
+			/* read the response from the API call into a string */
+			BufferedReader in = new BufferedReader(new InputStreamReader(conn.getInputStream()));
+			String inputLine;
+			StringBuffer response = new StringBuffer();
+			while ((inputLine = in.readLine()) != null) {
+				response.append(inputLine);
+			}
+			in.close();
+			
+			/* all API responses are JSON, so we might as well make a JSON object and return it */
+			return new JSONObject(response.toString());
+
+		} else {
+			return new JSONObject("{response: " + responseCode + ", url: \"" + endpoint + "\"}");
+		
+		}
+		
+	}
 
 	public String getApiHost() {
 		return apiHost;

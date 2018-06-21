@@ -16,10 +16,15 @@ public class TargetAPI extends APIConnection{
 	
 	private final static String CONTENT_TYPE_TARGET_JSON = "application/vnd.adobe.target.v1+json";
 	
+	private String tenant;
+	private String clientId;
+	
 	/* constructor */
-	public TargetAPI(String apiHost, String tenant, String apiKey, String bearerToken) {
+	public TargetAPI(String apiHost, String tenant, String clientId, String apiKey, String bearerToken) {
 		super(apiHost, apiKey, bearerToken);
-		setBaseURL("https://" + apiHost + "/" + tenant);		
+		setBaseURL("https://" + apiHost + "/" + tenant);
+		this.tenant = tenant;
+		this.clientId = clientId;
 	}
 
 	/*
@@ -92,11 +97,35 @@ public class TargetAPI extends APIConnection{
 
 	}
 	
-	public JSONObject getProfile(String tenant, String thirdPartyId) throws Exception {
+	public JSONObject getProfile(String thirdPartyId) throws Exception {
 
-		return doGetRequestJSON("https://" + tenant + ".tt.omtrdc.net/rest/v1/profiles/thirdPartyId/" + thirdPartyId + "?client=" + tenant, CONTENT_TYPE_TARGET_JSON);
+		return doGetRequestJSON("https://" + clientId + ".tt.omtrdc.net/rest/v1/profiles/thirdPartyId/" + thirdPartyId + "?client=" + clientId, CONTENT_TYPE_TARGET_JSON);
 
 	}
+	
+	
+//	public JSONObject setProfile(String thirdPartyId) throws Exception {
+//
+////		curl -X GET \
+////		  'https://adobedemoamericas72.tt.omtrdc.net/m2/adobedemoamericas72/profile/update?mbox3rdPartyId=wehopkin@adobe.com&profile.name=wes&client=adobedemoamericas72'
+////
+////		return doGetRequestJSON("https://" + clientId + ".tt.omtrdc.net/rest/v1/profiles/thirdPartyId/" + thirdPartyId + "?client=" + clientId, CONTENT_TYPE_TARGET_JSON);
+//		
+//	}
+	
+	public JSONObject getServerSideDelivery(String thirdPartyId, String sessionId, JSONObject body) throws Exception {
+
+		return doPostRequestJSON("https://" + clientId + ".tt.omtrdc.net/rest/v1/mbox/" + sessionId + "?client=" + clientId, body);
+
+	}
+//	
+//	curl -X POST \
+//	  'https://<your-tenant-name>.tt.omtrdc.net/rest/v1/mbox/my-session-id?client=<your-tenant-name>' \
+//	  -H 'cache-control: no-cache' \
+//	  -H 'content-type: application/json' \
+//	  -d '{
+//	  "mbox" : "l5-mobile-ab"
+//	}'
 	
 	public JSONObject getProfileAttributes() throws Exception {
 
