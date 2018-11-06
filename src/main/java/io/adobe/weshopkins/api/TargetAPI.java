@@ -115,7 +115,7 @@ public class TargetAPI extends APIConnection{
 	
 	public JSONObject getServerSideDelivery(String thirdPartyId, String sessionId, JSONObject body) throws Exception {
 
-		return doPostRequestJSON("https://" + clientId + ".tt.omtrdc.net/rest/v1/mbox/" + sessionId + "?client=" + clientId, body);
+		return doPostRequestJSONAnonymous("https://" + clientId + ".tt.omtrdc.net/rest/v1/mbox/" + sessionId + "?client=" + clientId, body);
 
 	}
 //	

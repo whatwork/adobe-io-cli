@@ -7,12 +7,12 @@ import java.io.InputStreamReader;
 import java.io.Reader;
 import java.util.Properties;
 
-import org.json.JSONException;
 import org.json.JSONObject;
 
 import io.adobe.weshopkins.JWT;
 import io.adobe.weshopkins.Constants;
 import io.adobe.weshopkins.api.CampaignAPI;
+import io.adobe.weshopkins.api.LaunchAPI;
 import io.adobe.weshopkins.api.TargetAPI;
 
 import org.apache.commons.cli.CommandLine;
@@ -38,9 +38,6 @@ import java.io.BufferedReader;
 
 public class CLI {
 	
-
-	
-
 	
 	private static Log log = LogFactory.getLog(JWT.class);
 
@@ -88,8 +85,17 @@ public class CLI {
 
 	    	System.err.println("Warning: no properties file specified nor found in home directory.  Use argument " + Constants.ARG_PROPERTIES_SAMPLE + " for sample props file");
 
-	    }
-	    
+		}
+		
+		/* -- app options  --*/
+		if (line.hasOption(Constants.ARG_PROPERTIES_SAMPLE)) {
+	
+			StringBuffer sb = new StringBuffer();
+			BufferedReader br = new BufferedReader(new InputStreamReader(new CLI().getClass().getClassLoader().getResourceAsStream("adobeio.sample.properties"), "UTF-8"));
+			for (int c = br.read(); c != -1; c = br.read()) sb.append((char)c);
+			System.out.println(sb.toString()); 
+			return;
+		}	
 		
 		// API key information from properties file
 		String orgId = line.getOptionValue(Constants.ARG_ORG_ID, prop.getProperty("enterprise.organizationId"));
@@ -102,6 +108,7 @@ public class CLI {
 		String clientSecret = line.getOptionValue(Constants.ARG_CLIENT_SECRET,prop.getProperty("enterprise.clientSecret"));
 		String apiHost = line.getOptionValue(Constants.ARG_API_HOST,prop.getProperty("server.apiHost"));
 		String targetClientId = line.getOptionValue(Constants.ARG_TARGET_CLIENT_ID,prop.getProperty("target.clientId"));
+		String launchHost = line.getOptionValue(Constants.ARG_LAUNCH_HOST,prop.getProperty("server.launchHost"));
 
 		if (verbose) {
 			System.out.println("orgId:" + orgId);
@@ -111,23 +118,10 @@ public class CLI {
 			System.out.println("campaignTenant: "+  campaignTenant) ; 
 			System.out.println("secret key: "+ pathToSecretKey ); 
 			System.out.println("imsHost: " +  imsHost);
+			System.out.println("launchHost: " +  launchHost);
 			System.out.println("apiHost: " + apiHost);
 			System.out.println("clientSecret: " + clientSecret);
 			System.out.println("targetClientId: " + targetClientId);
-		}
-		// Get a JWT token 
-		String jwtToken = JWT.getJWT(imsHost, orgId, technicalAccountId, apiKey, pathToSecretKey);
-		log.debug("JWT:" + jwtToken);
-		
-		// Convert the JWT token to a Bearer token
-		String bearerToken = "";
-		if (line.hasOption(Constants.ARG_BEARER_TOKEN))
-		{
-			bearerToken = line.getOptionValue(Constants.ARG_BEARER_TOKEN);
-			log.debug("Bearer specified: " + bearerToken);
-		} else {
-			bearerToken = JWT.getBearerTokenFromJWT(imsHost, apiKey, clientSecret, jwtToken);
-			log.debug("Bearer fetched: " + bearerToken);
 		}
 		
 		// Read STDIN or FILE for POST body (if we have it)
@@ -164,13 +158,43 @@ public class CLI {
 			}
 		}
 
-		TargetAPI target = new TargetAPI(apiHost, tenant, targetClientId, apiKey, bearerToken);
-		target.setDebug(verbose);
+		String jwtToken = "";
+		String bearerToken = "";
+		
+		if (line.hasOption(Constants.ARG_BEARER_TOKEN))
+		{
+			jwtToken = line.getOptionValue(Constants.ARG_JWT);
+			log.debug("JWT specified: " + jwtToken);
+		} else {
+			// Generate a JWT given the adobeio credentials.
+			jwtToken = JWT.getJWT(imsHost, orgId, technicalAccountId, apiKey, pathToSecretKey);
+			log.debug("JWT generated " + jwtToken);
+		}	
 
+		if (line.hasOption(Constants.ARG_BEARER_TOKEN))
+		{
+			bearerToken = line.getOptionValue(Constants.ARG_BEARER_TOKEN);
+			log.debug("Bearer specified");
+		} else {
+			// Present the JWT to AdobeIO and receive a Bearer token
+			bearerToken = JWT.getBearerTokenFromJWT(imsHost, apiKey, clientSecret, jwtToken);
+			log.debug("Bearer fetched");
+		}
 		if (line.hasOption(Constants.ARG_GET_BEARER_TOKEN) || verbose) {
 			System.out.println("bearerToken: " + bearerToken);
-		} 
-		
+		}
+
+		TargetAPI target = new TargetAPI(apiHost, tenant, targetClientId, apiKey, bearerToken);
+		LaunchAPI launch = new LaunchAPI(launchHost, apiKey, bearerToken);
+		CampaignAPI acs = new CampaignAPI(apiHost, campaignTenant, apiKey, bearerToken);
+		// nb: declaring these objects does not contact an API endpoint.
+
+		launch.setDebug(verbose);
+		target.setDebug(verbose);
+		acs.setDebug(verbose);
+
+	
+		/* ----- Target API calls -----*/ 
 		if (line.hasOption(Constants.ARG_TARGET_ACTIVITIES)) {
 
 			JSONObject activities = target.getActivities();
@@ -232,7 +256,6 @@ public class CLI {
 			System.out.println(params.toString(1));
 		}
 		
-		
 		if (line.hasOption(Constants.ARG_TARGET_PROFILE)) {
 
 			JSONObject profile = target.getProfile(line.getOptionValue(Constants.ARG_TARGET_PROFILE));
@@ -260,11 +283,10 @@ public class CLI {
 //			  "mbox" : "recs-api-box"
 //			}'
 
-            
+            // TODO: add arg for thirdparty ID.  hardcoded now.
 			JSONObject ssdelivery = target.getServerSideDelivery("a@b,c", "1234", new JSONObject(postBody));
 			System.out.println(ssdelivery.toString(1));
 		}	
-		
 		
 		if (line.hasOption(Constants.ARG_TARGET_OFFERS)) {
 
@@ -285,26 +307,22 @@ public class CLI {
 		}
 		
 		/* -- campaign options -- */
-		
 		if (line.hasOption(Constants.ARG_CAMPAIGN_PROFILE)) {
-			CampaignAPI acs = new CampaignAPI(apiHost, campaignTenant, apiKey, bearerToken);
 			JSONObject profile = acs.getProfile(line.getOptionValue(Constants.ARG_CAMPAIGN_PROFILE));
 			System.out.println(profile.toString(1));
 		}			
 		if (line.hasOption(Constants.ARG_CAMPAIGN_PROFILES)) {
-			CampaignAPI acs = new CampaignAPI(apiHost, campaignTenant, apiKey, bearerToken);
 			JSONObject profile = acs.getProfiles();
 			System.out.println(profile.toString(1));
-		}		
+		}
 		
-		/* -- app options  --*/
-		if (line.hasOption(Constants.ARG_PROPERTIES_SAMPLE)) {
-			
-			StringBuffer sb = new StringBuffer();
-			BufferedReader br = new BufferedReader(new InputStreamReader(new CLI().getClass().getClassLoader().getResourceAsStream("adobeio.sample.properties"), "UTF-8"));
-			for (int c = br.read(); c != -1; c = br.read()) sb.append((char)c);
-			System.out.println(sb.toString());  
+		/* -- launch options -- */
+		if (line.hasOption(Constants.ARG_LAUNCH_COMPANIES)) {
+			JSONObject companies = launch.getCompanies();
+			System.out.println(companies.toString(1));
 		}	
+		
+
 	}
 	
 	private static String readInputUntilEOF(Reader reader) {
@@ -342,7 +360,15 @@ public class CLI {
                 .desc("Organization ID" )
                 .argName("id")
                 .build()
-                );
+				);
+		
+				options.addOption(Option.builder(Constants.ARG_JWT)
+	    		.hasArg()
+                .longOpt(Constants.ARG_JWT_LONG)
+                .desc("JSON web token" )
+                .argName("token")
+                .build()
+                );				
 	    
 	    options.addOption(Option.builder(Constants.ARG_TECH_ID)
 	    		.hasArg()
@@ -379,6 +405,25 @@ public class CLI {
                 .longOpt(Constants.ARG_IMS_HOST_LONG)
                 .desc("Hostname of IMS Host (FQDN, no protocol)" )
                 .argName("hostname")
+                .build()
+                );
+
+	    options.addOption(Option.builder(Constants.ARG_LAUNCH_HOST)
+	    		.hasArg()
+                .longOpt(Constants.ARG_LAUNCH_HOST_LONG)
+                .desc("Hostname of Launch Host (FQDN, no protocol)" )
+                .argName("hostname")
+                .build()
+				);
+
+		options.addOption(Option.builder(Constants.ARG_LAUNCH_COMPANIES)
+                .longOpt(Constants.ARG_LAUNCH_COMPANIES_LONG)
+                .desc("Get Launch Companies" )
+                .build()
+                );
+
+	    options.addOption(Option.builder(Constants.ARG_LAUNCH_DEMOPROVISION)
+                .desc("Kitchen sink launch provision" )
                 .build()
                 );
 	    

@@ -104,8 +104,14 @@ public abstract class APIConnection {
 		}
 		
 	}
-	
-	public JSONObject doPostRequestJSON(String endpoint, JSONObject body ) throws Exception {
+
+	public JSONObject doPostRequestJSONAuthenticated(String endpoint, JSONObject body) throws Exception {
+		return doPostRequestJSON(endpoint, body, true);
+	}
+	public JSONObject doPostRequestJSONAnonymous(String endpoint, JSONObject body) throws Exception {
+		return doPostRequestJSON(endpoint, body, false);
+	}
+	private JSONObject doPostRequestJSON(String endpoint, JSONObject body, boolean authenticated ) throws Exception {
 
 		if(debug)
 		{
@@ -118,9 +124,13 @@ public abstract class APIConnection {
 		conn.setDoOutput(true);
 		
 		/* Set the request headers */
-		// conn.setRequestProperty("authorization", "Bearer " + bearerToken );
+		if (authenticated)
+		{ 
+			conn.setRequestProperty("authorization", "Bearer " + bearerToken );
+			conn.setRequestProperty("x-api-key", apiKey);
+		}
+		
 		conn.setRequestProperty("content-type", CONTENT_TYPE_JSON);
-		// conn.setRequestProperty("x-api-key", apiKey);
 		conn.setRequestProperty("cache-control", "no-cache");
 		conn.setUseCaches(false);
 		// TODO: put values in config file

@@ -60,6 +60,10 @@ public class Constants {
 	public final static String ARG_TARGET_DELETE_AB = "atdab";
 	public final static String ARG_TARGET_DELETE_AB_LONG = "deleteTargetActivityAB";
 	
+	/* --- launch --- */
+	public final static String ARG_LAUNCH_DEMOPROVISION = "launchDemo";
+	public final static String ARG_LAUNCH_COMPANIES = "alco";
+	public final static String ARG_LAUNCH_COMPANIES_LONG = "getLaunchCompanies";
 	
 	/* --- environmental --- */
 	
@@ -83,6 +87,9 @@ public class Constants {
 	public final static String ARG_IMS_HOST = "ims";
 	public final static String ARG_IMS_HOST_LONG = "imsHost";
 
+	public final static String ARG_LAUNCH_HOST = "launch";
+	public final static String ARG_LAUNCH_HOST_LONG = "launchHost";
+	
 	public final static String ARG_API_HOST = "apiHost";
 	public final static String ARG_CLIENT_SECRET = "clientSecret";
 	
@@ -90,6 +97,8 @@ public class Constants {
 	public final static String ARG_HELP = "help";
 	public final static String ARG_BEARER_TOKEN = "bt";
 	public final static String ARG_BEARER_TOKEN_LONG = "bearerToken";
+	public final static String ARG_JWT = "jwt";
+	public final static String ARG_JWT_LONG = "jsonWebToken";
 
 	public final static String ARG_GET_BEARER_TOKEN = "gbt";
 	public final static String ARG_GET_BEARER_TOKEN_LONG = "getBearerToken";
