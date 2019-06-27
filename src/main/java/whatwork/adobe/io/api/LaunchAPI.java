@@ -1,4 +1,4 @@
-package io.adobe.weshopkins.api;
+package whatwork.adobe.io.api;
 
 import org.json.JSONObject;
 

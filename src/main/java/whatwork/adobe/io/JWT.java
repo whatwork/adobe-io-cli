@@ -1,4 +1,4 @@
-package io.adobe.weshopkins;
+package whatwork.adobe.io;
 
 import io.jsonwebtoken.Jwts;
 

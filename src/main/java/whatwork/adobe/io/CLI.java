@@ -1,4 +1,4 @@
-package io.adobe.weshopkins;
+package whatwork.adobe.io;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileReader;
@@ -9,11 +9,11 @@ import java.util.Properties;
 
 import org.json.JSONObject;
 
-import io.adobe.weshopkins.JWT;
-import io.adobe.weshopkins.Constants;
-import io.adobe.weshopkins.api.CampaignAPI;
-import io.adobe.weshopkins.api.LaunchAPI;
-import io.adobe.weshopkins.api.TargetAPI;
+import whatwork.adobe.io.Constants;
+import whatwork.adobe.io.JWT;
+import whatwork.adobe.io.api.CampaignAPI;
+import whatwork.adobe.io.api.LaunchAPI;
+import whatwork.adobe.io.api.TargetAPI;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
